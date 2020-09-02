@@ -26,7 +26,9 @@ FPGA implementation of SHA1/SHA224/SHA256/SHA384/SHA512
 
 # 使用方法
 
-这些模块使用统一的，标准的 AXI-stream 接口来输入待计算的数据流。例如，你想分别计算数据流 '12' 和 '123' 的哈希值，则应按照如下波形图进行操作。（8'h31,8'h32,8'h33 分别是字符'1','2','3' 的ASCII码。
+这些模块使用统一的，标准的 AXI-stream 接口来输入待计算的数据流。例如，你想分别计算数据流 '12' 和 '123' 的哈希值，则应按照如下波形图进行操作。
+
+其中，字符'1','2','3'的ASCII码分别是8'h31,8'h32,8'h33
 
 | ![输入图](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/images/wave.png) |
 | :----: |

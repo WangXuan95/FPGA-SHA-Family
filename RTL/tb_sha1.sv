@@ -31,7 +31,7 @@ sha1 sha1_i(
 
 always @ (posedge clk)
     if(ovalid)
-        $display("id=%0d   len=%0d   sha256=%040x", oid, olen, osha);
+        $display("id=%0d   len=%0d   sha1=%040x", oid, olen, osha);
 
 task automatic delay(input int cycles);
     for(int i=0;i<cycles;i++) begin
