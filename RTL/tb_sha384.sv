@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module tb_sha256();
+module tb_sha384();
 
 reg clk = 1'b1;   always #5 clk = ~clk; // 100MHz
 
@@ -13,9 +13,9 @@ reg  [  7:0] tdata  = '0;
 wire         ovalid;
 wire [ 31:0] oid;
 wire [ 60:0] olen;
-wire [255:0] osha;
+wire [383:0] osha;
 
-sha256 sha256_i(
+sha384 sha384_i(
     .rst      ( 1'b0   ),
     .clk      ( clk    ),
     .tvalid   ( tvalid ),
@@ -31,7 +31,7 @@ sha256 sha256_i(
 
 always @ (posedge clk)
     if(ovalid)
-        $display("id=%0d   len=%0d   sha256=%064x", oid, olen, osha);
+        $display("id=%0d   len=%0d   sha384=%096x", oid, olen, osha);
 
 task automatic delay(input int cycles);
     for(int i=0;i<cycles;i++) begin
@@ -86,7 +86,9 @@ initial begin
     push_file(555, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test5.bin", "rb"));
     push_file(666, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test6.bin", "rb"));
     push_file(777, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test7.bin", "rb"));
-    delay(200);
+    push_file(888, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test8.bin", "rb"));
+    push_file(999, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test9.bin", "rb"));
+    delay(400);
     $stop;
 end
 

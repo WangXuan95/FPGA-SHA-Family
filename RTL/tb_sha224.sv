@@ -64,7 +64,8 @@ task automatic push_file(input int id, input int fp);
         if(firstbyte & (rbytel!=-1)) begin
             firstbyte = 0;
             tid <= id;
-        end
+        end else
+            tid <= '0;
         tvalid <= (rbytel!=-1);
         tlast  <= (rbyte==-1);
         tdata  <= (rbytel!=-1) ? rbytel : 8'h0;
@@ -78,13 +79,13 @@ endtask
 
 initial begin
     delay(3);
-    push_file(111, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test1.bin", "rb"));
-    push_file(222, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test2.bin", "rb"));
-    push_file(333, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test3.bin", "rb"));
-    push_file(444, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test4.bin", "rb"));
-    push_file(555, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test5.bin", "rb"));
-    push_file(666, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test6.bin", "rb"));
-    push_file(777, $fopen("E:/FPGAcommon/Verilog-SHA2-Family/test/test7.bin", "rb"));
+    push_file(111, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test1.bin", "rb"));
+    push_file(222, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test2.bin", "rb"));
+    push_file(333, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test3.bin", "rb"));
+    push_file(444, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test4.bin", "rb"));
+    push_file(555, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test5.bin", "rb"));
+    push_file(666, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test6.bin", "rb"));
+    push_file(777, $fopen("E:/FPGAcommon/Verilog-SHA-Family/test/test7.bin", "rb"));
     delay(200);
     $stop;
 end

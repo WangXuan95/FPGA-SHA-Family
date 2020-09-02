@@ -1,6 +1,6 @@
 `timescale 1ns/1ns
 
-module tb_sha256();
+module tb_sha1();
 
 reg clk = 1'b1;   always #5 clk = ~clk; // 100MHz
 
@@ -13,9 +13,9 @@ reg  [  7:0] tdata  = '0;
 wire         ovalid;
 wire [ 31:0] oid;
 wire [ 60:0] olen;
-wire [255:0] osha;
+wire [159:0] osha;
 
-sha256 sha256_i(
+sha1 sha1_i(
     .rst      ( 1'b0   ),
     .clk      ( clk    ),
     .tvalid   ( tvalid ),
@@ -31,7 +31,7 @@ sha256 sha256_i(
 
 always @ (posedge clk)
     if(ovalid)
-        $display("id=%0d   len=%0d   sha256=%064x", oid, olen, osha);
+        $display("id=%0d   len=%0d   sha256=%040x", oid, olen, osha);
 
 task automatic delay(input int cycles);
     for(int i=0;i<cycles;i++) begin
@@ -65,7 +65,7 @@ task automatic push_file(input int id, input int fp);
             firstbyte = 0;
             tid <= id;
         end else
-            tid <= '0;
+            tid <='0;
         tvalid <= (rbytel!=-1);
         tlast  <= (rbyte==-1);
         tdata  <= (rbytel!=-1) ? rbytel : 8'h0;
