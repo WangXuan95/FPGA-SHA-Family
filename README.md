@@ -13,16 +13,16 @@ FPGA implementation of SHA1/SHA224/SHA256/SHA384/SHA512
 
 | 文件名称 | 描述    | 备注   |
 | :---: | :--- | :--- |
-| [**sha1.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/sha1.sv) | SHA1 计算器 | 可综合，独立模块，不调用其它模块 |
-| [**sha224.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/sha224.sv) | SHA224 计算器 | 可综合，独立模块，不调用其它模块 |
-| [**sha256.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/sha256.sv) | SHA256 计算器 | 可综合，独立模块，不调用其它模块 |
-| [**sha384.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/sha384.sv) | SHA384 计算器 | 可综合，独立模块，不调用其它模块 |
-| [**sha512.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/sha512.sv) | SHA512 计算器 | 可综合，独立模块，不调用其它模块 |
-| [**tb_sha1.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/tb_sha1.sv) | SHA1 仿真顶层 | 读取指定的文件，发送给 SHA1 计算器 |
-| [**tb_sha224.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/tb_sha224.sv) | SHA224 仿真顶层 | 读取指定的文件，发送给 SHA224 计算器 |
-| [**tb_sha256.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/tb_sha256.sv) | SHA256 仿真顶层 | 读取指定的文件，发送给 SHA256 计算器 |
-| [**tb_sha384.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/tb_sha384.sv) | SHA384 仿真顶层 | 读取指定的文件，发送给 SHA384 计算器 |
-| [**tb_sha512.sv**](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL/tb_sha512.sv) | SHA512 仿真顶层 | 读取指定的文件，发送给 SHA512 计算器 |
+| [**sha1.sv**](./RTL/sha1.sv) | SHA1 计算器 | 可综合，独立模块，不调用其它模块 |
+| [**sha224.sv**](./RTL/sha224.sv) | SHA224 计算器 | 可综合，独立模块，不调用其它模块 |
+| [**sha256.sv**](./RTL/sha256.sv) | SHA256 计算器 | 可综合，独立模块，不调用其它模块 |
+| [**sha384.sv**](./RTL/sha384.sv) | SHA384 计算器 | 可综合，独立模块，不调用其它模块 |
+| [**sha512.sv**](./RTL/sha512.sv) | SHA512 计算器 | 可综合，独立模块，不调用其它模块 |
+| [**tb_sha1.sv**](./RTL/tb_sha1.sv) | SHA1 仿真顶层 | 读取指定的文件，发送给 SHA1 计算器 |
+| [**tb_sha224.sv**](./RTL/tb_sha224.sv) | SHA224 仿真顶层 | 读取指定的文件，发送给 SHA224 计算器 |
+| [**tb_sha256.sv**](./RTL/tb_sha256.sv) | SHA256 仿真顶层 | 读取指定的文件，发送给 SHA256 计算器 |
+| [**tb_sha384.sv**](./RTL/tb_sha384.sv) | SHA384 仿真顶层 | 读取指定的文件，发送给 SHA384 计算器 |
+| [**tb_sha512.sv**](./RTL/tb_sha512.sv) | SHA512 仿真顶层 | 读取指定的文件，发送给 SHA512 计算器 |
 
 # 使用方法
 
@@ -45,7 +45,7 @@ FPGA implementation of SHA1/SHA224/SHA256/SHA384/SHA512
 
 # 仿真
 
-[RTL目录](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/RTL) 里提供的5个仿真的顶层文件可以分别进行 SHA1, SHA224, SHA256, SHA384, SHA512 模块的仿真，它们能从你的文件系统中读取若干文件，并将其内容发送给 SHA 模块，针对每个文件计算出哈希值。
+[RTL目录](./RTL) 里提供的5个仿真的顶层文件可以分别进行 SHA1, SHA224, SHA256, SHA384, SHA512 模块的仿真，它们能从你的文件系统中读取若干文件，并将其内容发送给 SHA 模块，针对每个文件计算出哈希值。
 
 在进行仿真前，请从仿真文件的第82行开始，将待计算哈希值的文件的路径填入$fopen()中。注意，push_file 函数的第一个参数是你希望给这个数据流的标识（也就是tid的值），第二个参数是文件指针（也就是$fopen()的返回值）。
 
