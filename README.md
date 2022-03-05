@@ -30,7 +30,7 @@ FPGA implementation of SHA1/SHA224/SHA256/SHA384/SHA512
 
 其中，字符'1','2','3'的ASCII码分别是8'h31,8'h32,8'h33
 
-| ![输入图](https://github.com/WangXuan95/Verilog-SHA-Family/blob/master/images/wave.png) |
+| ![输入图](./images/wave.png) |
 | :----: |
 | **图1** : 波形图 |
 
