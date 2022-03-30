@@ -1,7 +1,12 @@
-`timescale 1ns/1ns
+
+//--------------------------------------------------------------------------------------------------------
+// Module  : sha1
+// Type    : synthesizable, IP's top
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+//--------------------------------------------------------------------------------------------------------
 
 module sha1(
-    input  wire         rst,
+    input  wire         rstn,
     input  wire         clk,
     input  wire         tvalid,
     output wire         tready,
@@ -89,8 +94,8 @@ reg [31:0] wk0='0, wk1='0;
 assign tready = (status==IDLE) || (status==RUN);
 assign iinit  = (status==IDLE) & tvalid;
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         status <= IDLE;
         cnt <= '0;
         tcnt <= '0;
@@ -154,8 +159,8 @@ always @ (posedge clk or posedge rst)
         endcase
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         icnt <= '0;
         for(int i=0; i<64; i++) buff[i] <= '0;
     end else begin
@@ -167,8 +172,8 @@ always @ (posedge clk or posedge rst)
         end
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         minit <= 1'b0;
         men   <= 1'b0;
         mlast <= 1'b0;
@@ -196,9 +201,9 @@ always @ (posedge clk or posedge rst)
                 mcnt <= mcnt + 6'd1;
         end
     end
-
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+            
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         winit  <= 1'b0;
         wen    <= 1'b0;
         wlast  <= 1'b0;
@@ -226,30 +231,31 @@ always @ (posedge clk or posedge rst)
             wtype <= 2'd3;
         end
         if(mcnt<6'd8) begin
-            automatic logic [5:0] waddr0 = {mcnt[2:0],3'd0};
-            automatic logic [5:0] waddr1 = {mcnt[2:0],3'd1};
-            automatic logic [5:0] waddr2 = {mcnt[2:0],3'd2};
-            automatic logic [5:0] waddr3 = {mcnt[2:0],3'd3};
-            automatic logic [5:0] waddr4 = {mcnt[2:0],3'd4};
-            automatic logic [5:0] waddr5 = {mcnt[2:0],3'd5};
-            automatic logic [5:0] waddr6 = {mcnt[2:0],3'd6};
-            automatic logic [5:0] waddr7 = {mcnt[2:0],3'd7};
+            logic [5:0] waddr0, waddr1, waddr2, waddr3, waddr4, waddr5, waddr6, waddr7;
+            waddr0 = {mcnt[2:0],3'd0};
+            waddr1 = {mcnt[2:0],3'd1};
+            waddr2 = {mcnt[2:0],3'd2};
+            waddr3 = {mcnt[2:0],3'd3};
+            waddr4 = {mcnt[2:0],3'd4};
+            waddr5 = {mcnt[2:0],3'd5};
+            waddr6 = {mcnt[2:0],3'd6};
+            waddr7 = {mcnt[2:0],3'd7};
             w[1] <= {buff[waddr0],buff[waddr1],buff[waddr2],buff[waddr3]};
             w[0] <= {buff[waddr4],buff[waddr5],buff[waddr6],buff[waddr7]};
             for(int i=2; i<18; i++) w[i] <= w[i-2];
         end else begin
-            reg [31:0] wtmp [18];
-            wtmp = w;
+            logic [31:0] wtmp [18];
+            for(int i=0; i<18; i++) wtmp[i] = w[i];
             for(int i=17; i>0; i--) wtmp[i] = wtmp[i-1];
 		    wtmp[0] = SL1(wtmp[16]^wtmp[14]^wtmp[8]^wtmp[3]);
 		    for(int i=17; i>0; i--) wtmp[i] = wtmp[i-1];
 		    wtmp[0] = SL1(wtmp[16]^wtmp[14]^wtmp[8]^wtmp[3]);
-		    w <= wtmp;
+		    for(int i=0; i<18; i++) w[i] <= wtmp[i];
         end
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         wkinit <= 1'b0;
         wken <= 1'b0;
         wklast <= 1'b0;
@@ -271,35 +277,35 @@ always @ (posedge clk or posedge rst)
         wk1 <= w[1] + k[wtype];
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         for(int i=0; i<5; i++) hsave[i] <= '0;
     end else begin
         if(wkstart)
-            hsave <= h;
+            for(int i=0; i<5; i++) hsave[i] <= h[i];
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         for(int i=0; i<5; i++) hadder[i] <= '0;
     end else begin
         if(wfinal) begin
-            hadder <= hsave;
+            for(int i=0; i<5; i++) hadder[i] <= hsave[i];
         end else begin
             for(int i=0; i<5; i++) hadder[i] <= '0;
         end
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         for(int i=0; i<5; i++) h[i] <= '0;
     end else begin
         if(wkinit) begin
-            h <= hinit;
+            for(int i=0; i<5; i++) h[i] <= hinit[i];
         end else if(wken) begin
-            automatic logic [31:0] ht [5];
-            automatic logic [31:0] f, t;
-            ht = h;
+            logic [31:0] ht [5];
+            logic [31:0] f, t;
+            for(int i=0; i<5; i++) ht[i] = h[i];
             
             case(wktype)
             2'd0    : f = (ht[1]&ht[2]) | (~ht[1]&ht[3]);
@@ -331,8 +337,8 @@ always @ (posedge clk or posedge rst)
     end
 
 initial {ovalid,oid,olen}  =1'b0;
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         ovalid <= 1'b0;
         oid  <= '0;
         olen <= '0;

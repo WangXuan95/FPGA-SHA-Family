@@ -1,7 +1,12 @@
-`timescale 1ns/1ns
+
+//--------------------------------------------------------------------------------------------------------
+// Module  : sha256
+// Type    : synthesizable, IP's top
+// Standard: SystemVerilog 2005 (IEEE1800-2005)
+//--------------------------------------------------------------------------------------------------------
 
 module sha256(
-    input  wire         rst,
+    input  wire         rstn,
     input  wire         clk,
     input  wire         tvalid,
     output wire         tready,
@@ -155,8 +160,8 @@ reg [31:0] wk = '0;
 assign tready = (status==IDLE) || (status==RUN);
 assign iinit  = (status==IDLE) & tvalid;
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         status <= IDLE;
         cnt <= '0;
         tcnt <= '0;
@@ -220,8 +225,8 @@ always @ (posedge clk or posedge rst)
         endcase
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         icnt <= '0;
         for(int i=0; i<64; i++) buff[i] <= '0;
     end else begin
@@ -233,8 +238,8 @@ always @ (posedge clk or posedge rst)
         end
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         minit <= 1'b0;
         men   <= 1'b0;
         mlast <= 1'b0;
@@ -263,8 +268,8 @@ always @ (posedge clk or posedge rst)
         end
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         winit  <= 1'b0;
         wen    <= 1'b0;
         wlast  <= 1'b0;
@@ -284,10 +289,11 @@ always @ (posedge clk or posedge rst)
         wfinal <= men & (mcnt==6'h3f);
         wadder <= k[mcnt];
         if(mcnt<6'd16) begin
-            automatic logic [5:0] waddr0 = {mcnt[3:0],2'd0};
-            automatic logic [5:0] waddr1 = {mcnt[3:0],2'd1};
-            automatic logic [5:0] waddr2 = {mcnt[3:0],2'd2};
-            automatic logic [5:0] waddr3 = {mcnt[3:0],2'd3};
+            logic [5:0] waddr0, waddr1, waddr2, waddr3;
+            waddr0 = {mcnt[3:0],2'd0};
+            waddr1 = {mcnt[3:0],2'd1};
+            waddr2 = {mcnt[3:0],2'd2};
+            waddr3 = {mcnt[3:0],2'd3};
             w[0] <= {buff[waddr0],buff[waddr1],buff[waddr2],buff[waddr3]};
         end else begin
             w[0] <= SSIG1(w[1]) + w[6] + SSIG0(w[14]) + w[15];
@@ -295,8 +301,8 @@ always @ (posedge clk or posedge rst)
         for(int i=1; i<16; i++) w[i] <= w[i-1];
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         wkinit <= 1'b0;
         wken <= 1'b0;
         wklast <= 1'b0;
@@ -314,33 +320,33 @@ always @ (posedge clk or posedge rst)
         wk <= w[0] + wadder;
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         for(int i=0; i<8; i++) hsave[i] <= '0;
     end else begin
         if(wkstart)
-            hsave <= h;
+            for(int i=0; i<8; i++) hsave[i] <= h[i];
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         for(int i=0; i<8; i++) hadder[i] <= '0;
     end else begin
         if(wfinal) begin
-            hadder <= hsave;
+            for(int i=0; i<8; i++) hadder[i] <= hsave[i];
         end else begin
             for(int i=0; i<8; i++) hadder[i] <= '0;
         end
     end
 
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         for(int i=0; i<8; i++) h[i] <= '0;
     end else begin
         if(wkinit) begin
-            h <= hinit;
+            for(int i=0; i<8; i++) h[i] <= hinit[i];
         end else if(wken) begin
-            automatic logic [31:0] t1, t2;
+            logic [31:0] t1, t2;
             t1 = h[7] + BSIG1(h[4]) + ((h[4] &  h[5]) ^ (~h[4] & h[6])) + wk;
             t2 = BSIG0(h[0]) + ((h[0] & h[1]) ^ (h[0] & h[2]) ^ (h[1] & h[2]));
             h[7] <= hadder[7] + h[6];
@@ -355,8 +361,8 @@ always @ (posedge clk or posedge rst)
     end
 
 initial {ovalid,oid,olen}  =1'b0;
-always @ (posedge clk or posedge rst)
-    if(rst) begin
+always @ (posedge clk or negedge rstn)
+    if(~rstn) begin
         ovalid <= 1'b0;
         oid  <= '0;
         olen <= '0;
