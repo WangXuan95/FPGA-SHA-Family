@@ -247,10 +247,10 @@ always @ (posedge clk or negedge rstn)
             logic [31:0] wtmp [18];
             for(int i=0; i<18; i++) wtmp[i] = w[i];
             for(int i=17; i>0; i--) wtmp[i] = wtmp[i-1];
-		    wtmp[0] = SL1(wtmp[16]^wtmp[14]^wtmp[8]^wtmp[3]);
-		    for(int i=17; i>0; i--) wtmp[i] = wtmp[i-1];
-		    wtmp[0] = SL1(wtmp[16]^wtmp[14]^wtmp[8]^wtmp[3]);
-		    for(int i=0; i<18; i++) w[i] <= wtmp[i];
+            wtmp[0] = SL1(wtmp[16]^wtmp[14]^wtmp[8]^wtmp[3]);
+            for(int i=17; i>0; i--) wtmp[i] = wtmp[i-1];
+            wtmp[0] = SL1(wtmp[16]^wtmp[14]^wtmp[8]^wtmp[3]);
+            for(int i=0; i<18; i++) w[i] <= wtmp[i];
         end
     end
 
