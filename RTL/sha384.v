@@ -1,41 +1,61 @@
 
 //--------------------------------------------------------------------------------------------------------
-// Module  : sha512
+// Module  : sha384
 // Type    : synthesizable, IP's top
-// Standard: SystemVerilog 2005 (IEEE1800-2005)
+// Standard: Verilog 2001 (IEEE1364-2001)
 //--------------------------------------------------------------------------------------------------------
 
-module sha512(
+module sha384(
     input  wire         rstn,
     input  wire         clk,
-    input  wire         tvalid,
+    // input interface
     output wire         tready,
+    input  wire         tvalid,
     input  wire         tlast,
     input  wire [ 31:0] tid,
     input  wire [  7:0] tdata,
+    // output interface
     output reg          ovalid,
     output reg  [ 31:0] oid,
     output reg  [ 60:0] olen,
-    output wire [511:0] osha
+    output wire [383:0] osha
 );
 
-function automatic logic [63:0] SSIG0(input [63:0] x);
-    return {x[0:0],x[63:1]} ^ {x[7:0],x[63:8]} ^ {7'h0,x[63:7]};
+
+function  [63:0] SSIG0;
+    input [63:0] x;
+begin
+    SSIG0 = {x[0:0],x[63:1]} ^ {x[7:0],x[63:8]} ^ {7'h0,x[63:7]};
+end
 endfunction
 
-function automatic logic [63:0] SSIG1(input [63:0] x);
-    return {x[18:0],x[63:19]} ^ {x[60:0],x[63:61]} ^ {6'h0,x[63:6]};
+
+function  [63:0] SSIG1;
+    input [63:0] x;
+begin
+    SSIG1 = {x[18:0],x[63:19]} ^ {x[60:0],x[63:61]} ^ {6'h0,x[63:6]};
+end
 endfunction
 
-function automatic logic [63:0] BSIG0(input [63:0] x);
-    return {x[27:0],x[63:28]} ^ {x[33:0],x[63:34]} ^ {x[38:0],x[63:39]};
+
+function  [63:0] BSIG0;
+    input [63:0] x;
+begin
+    BSIG0 = {x[27:0],x[63:28]} ^ {x[33:0],x[63:34]} ^ {x[38:0],x[63:39]};
+end
 endfunction
 
-function automatic logic [63:0] BSIG1(input [63:0] x);
-    return {x[13:0],x[63:14]} ^ {x[17:0],x[63:18]} ^ {x[40:0],x[63:41]};
+
+function  [63:0] BSIG1;
+    input [63:0] x;
+begin
+    BSIG1 = {x[13:0],x[63:14]} ^ {x[17:0],x[63:18]} ^ {x[40:0],x[63:41]};
+end
 endfunction
 
-wire [63:0] k [80];
+
+
+wire [63:0] k [0:79];
 assign k[ 0] = 64'h428a2f98d728ae22;
 assign k[ 1] = 64'h7137449123ef65cd;
 assign k[ 2] = 64'hb5c0fbcfec4d3b2f;
@@ -117,61 +137,70 @@ assign k[77] = 64'h597f299cfc657e2a;
 assign k[78] = 64'h5fcb6fab3ad6faec;
 assign k[79] = 64'h6c44198c4a475817;
 
-wire [63:0] hinit [8];
-reg  [63:0] h [8];
-reg  [63:0] hsave [8];
-reg  [63:0] hadder [8];
-assign hinit[ 0] = 64'h6a09e667f3bcc908;
-assign hinit[ 1] = 64'hbb67ae8584caa73b;
-assign hinit[ 2] = 64'h3c6ef372fe94f82b;
-assign hinit[ 3] = 64'ha54ff53a5f1d36f1;
-assign hinit[ 4] = 64'h510e527fade682d1;
-assign hinit[ 5] = 64'h9b05688c2b3e6c1f;
-assign hinit[ 6] = 64'h1f83d9abfb41bd6b;
-assign hinit[ 7] = 64'h5be0cd19137e2179;
-initial for(int i=0; i<8; i++) h[i] = '0;
-initial for(int i=0; i<8; i++) hsave[i] = '0;
-initial for(int i=0; i<8; i++) hadder[i] = '0;
+integer i;
 
-reg [63:0] w [16];
-reg [ 7:0] buff [128];
-initial for(int i=0; i<16 ; i++) w[i] = '0;
-initial for(int i=0; i<128; i++) buff[i] = '0;
+wire [63:0] hinit [0:7];
+reg  [63:0] h [0:7];
+reg  [63:0] hsave [0:7];
+reg  [63:0] hadder [0:7];
+assign hinit[ 0] = 64'hcbbb9d5dc1059ed8;
+assign hinit[ 1] = 64'h629a292a367cd507;
+assign hinit[ 2] = 64'h9159015a3070dd17;
+assign hinit[ 3] = 64'h152fecd8f70e5939;
+assign hinit[ 4] = 64'h67332667ffc00b31;
+assign hinit[ 5] = 64'h8eb44a8768581511;
+assign hinit[ 6] = 64'hdb0c2e0d64f98fa7;
+assign hinit[ 7] = 64'h47b5481dbefa4fa4;
+initial for(i=0; i<8; i=i+1) h[i] = 64'd0;
+initial for(i=0; i<8; i=i+1) hsave[i] = 64'd0;
+initial for(i=0; i<8; i=i+1) hadder[i] = 64'd0;
 
-enum logic [2:0] {IDLE, RUN, ADD8, ADD0, ADDLEN, DONE} status = IDLE;
-reg  [60:0] cnt = '0;
-reg  [ 6:0] tcnt = '0;
+reg [63:0] w [0:15];
+reg [ 7:0] buff [0:127];
+initial for(i=0; i<16 ; i=i+1) w[i] = 64'd0;
+initial for(i=0; i<128; i=i+1) buff[i] = 8'd0;
+
+localparam [2:0] IDLE   = 3'd0,
+                 RUN    = 3'd1,
+                 ADD8   = 3'd2,
+                 ADD0   = 3'd3,
+                 ADDLEN = 3'd4,
+                 DONE   = 3'd5;
+reg  [ 2:0] status = IDLE;
+
+reg  [60:0] cnt = 61'd0;
+reg  [ 6:0] tcnt = 7'd0;
 wire [127:0] bitlen = {64'h0,cnt,3'h0};
 
 wire       iinit;
 reg        ifirst = 1'b0;
 reg        ivalid = 1'b0;
 reg        ilast = 1'b0;
-reg [60:0] ilen  = '0;
-reg [31:0] iid = '0;
-reg [ 7:0] idata = '0;
-reg [ 6:0] icnt = '0;
+reg [60:0] ilen  = 61'd0;
+reg [31:0] iid = 0;
+reg [ 7:0] idata = 8'd0;
+reg [ 6:0] icnt = 7'd0;
 reg        minit= 1'b0;
 reg        men  = 1'b0;
 reg        mlast = 1'b0;
-reg [31:0] mid = '0;
-reg [60:0] mlen = '0;
-reg [ 6:0] mcnt = '0;
+reg [31:0] mid = 0;
+reg [60:0] mlen = 61'd0;
+reg [ 6:0] mcnt = 7'd0;
 reg        winit  = 1'b0;
 reg        wen  = 1'b0;
 reg        wlast = 1'b0;
-reg [31:0] wid = '0;
-reg [60:0] wlen = '0;
+reg [31:0] wid = 0;
+reg [60:0] wlen = 61'd0;
 reg        wstart = 1'b0;
 reg        wfinal = 1'b0;
-reg [63:0] wadder = '0;
+reg [63:0] wadder = 64'd0;
 reg        wkinit  = 1'b0;
 reg        wken = 1'b0;
 reg        wklast = 1'b0;
-reg [31:0] wkid = '0;
-reg [60:0] wklen = '0;
+reg [31:0] wkid = 0;
+reg [60:0] wklen = 61'd0;
 reg        wkstart = 1'b0;
-reg [63:0] wk = '0;
+reg [63:0] wk = 64'd0;
 
 assign tready = (status==IDLE) || (status==RUN);
 assign iinit  = (status==IDLE) & tvalid;
@@ -179,9 +208,9 @@ assign iinit  = (status==IDLE) & tvalid;
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
         status <= IDLE;
-        cnt <= '0;
-        tcnt <= '0;
-        {ivalid, ifirst, ilast, ilen, iid, idata} <= '0;
+        cnt <= 61'd0;
+        tcnt <= 7'd0;
+        {ivalid, ifirst, ilast, ilen, iid, idata} <= 0;
     end else begin
         ilen <= cnt;
         case(status)
@@ -234,20 +263,20 @@ always @ (posedge clk or negedge rstn)
             end
             default : begin
                 status <= IDLE;
-                cnt <= '0;
-                tcnt <= '0;
-                {ivalid, ifirst, ilast, ilen, idata} <= '0;
+                cnt <= 61'd0;
+                tcnt <= 7'd0;
+                {ivalid, ifirst, ilast, ilen, idata} <= 0;
             end
         endcase
     end
 
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
-        icnt <= '0;
-        for(int i=0; i<128; i++) buff[i] <= '0;
+        icnt <= 7'd0;
+        for(i=0; i<128; i=i+1) buff[i] <= 8'd0;
     end else begin
         if(iinit) begin
-            icnt <= '0;
+            icnt <= 7'd0;
         end else if(ivalid) begin
             buff[icnt] <= idata;
             icnt <= icnt + 7'd1;
@@ -259,21 +288,21 @@ always @ (posedge clk or negedge rstn)
         minit <= 1'b0;
         men   <= 1'b0;
         mlast <= 1'b0;
-        mid   <= '0;
-        mlen  <= '0;
-        mcnt  <= '0;
+        mid   <= 0;
+        mlen  <= 61'd0;
+        mcnt  <= 7'd0;
     end else begin
         minit <= ifirst & (icnt==7'h7e);
         if(ifirst & (icnt==7'h7e)) begin
             men   <= 1'b0;
             mlast <= 1'b0;
-            mcnt  <= '0;
+            mcnt  <= 7'd0;
         end else if(ivalid & (&icnt)) begin
             men   <= 1'b1;
             mlast <= ilast;
             mid   <= iid;
             mlen  <= ilen;
-            mcnt  <= '0;
+            mcnt  <= 7'd0;
         end else begin
             if(mcnt==7'h4f) begin
                 men   <= 1'b0;
@@ -284,17 +313,28 @@ always @ (posedge clk or negedge rstn)
         end
     end
 
+
+wire [6:0] waddr0, waddr1, waddr2, waddr3, waddr4, waddr5, waddr6, waddr7;
+assign waddr0 = {mcnt[3:0],3'd0};
+assign waddr1 = {mcnt[3:0],3'd1};
+assign waddr2 = {mcnt[3:0],3'd2};
+assign waddr3 = {mcnt[3:0],3'd3};
+assign waddr4 = {mcnt[3:0],3'd4};
+assign waddr5 = {mcnt[3:0],3'd5};
+assign waddr6 = {mcnt[3:0],3'd6};
+assign waddr7 = {mcnt[3:0],3'd7};
+
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
         winit  <= 1'b0;
         wen    <= 1'b0;
         wlast  <= 1'b0;
-        wid    <= '0;
-        wlen   <= '0;
+        wid    <= 0;
+        wlen   <= 61'd0;
         wstart <= 1'b0;
         wfinal <= 1'b0;
-        wadder <= '0;
-        for(int i=0; i<16; i++) w[i] <= '0;
+        wadder <= 64'd0;
+        for(i=0; i<16; i=i+1) w[i] <= 64'd0;
     end else begin
         winit  <= minit;
         wen    <= men;
@@ -304,21 +344,11 @@ always @ (posedge clk or negedge rstn)
         wstart <= men & (mcnt==7'h00);
         wfinal <= men & (mcnt==7'h4f);
         wadder <= k[mcnt];
-        if(mcnt<7'd16) begin
-            logic [6:0] waddr0, waddr1, waddr2, waddr3, waddr4, waddr5, waddr6, waddr7;
-            waddr0 = {mcnt[3:0],3'd0};
-            waddr1 = {mcnt[3:0],3'd1};
-            waddr2 = {mcnt[3:0],3'd2};
-            waddr3 = {mcnt[3:0],3'd3};
-            waddr4 = {mcnt[3:0],3'd4};
-            waddr5 = {mcnt[3:0],3'd5};
-            waddr6 = {mcnt[3:0],3'd6};
-            waddr7 = {mcnt[3:0],3'd7};
+        if(mcnt<7'd16)
             w[0] <= {buff[waddr0],buff[waddr1],buff[waddr2],buff[waddr3],buff[waddr4],buff[waddr5],buff[waddr6],buff[waddr7]};
-        end else begin
+        else
             w[0] <= SSIG1(w[1]) + w[6] + SSIG0(w[14]) + w[15];
-        end
-        for(int i=1; i<16; i++) w[i] <= w[i-1];
+        for(i=1; i<16; i=i+1) w[i] <= w[i-1];
     end
 
 always @ (posedge clk or negedge rstn)
@@ -326,10 +356,10 @@ always @ (posedge clk or negedge rstn)
         wkinit <= 1'b0;
         wken <= 1'b0;
         wklast <= 1'b0;
-        wkid   <= '0;
-        wklen  <= '0;
+        wkid   <= 0;
+        wklen  <= 61'd0;
         wkstart <= 1'b0;
-        wk <= '0;
+        wk <= 64'd0;
     end else begin
         wkinit <= winit;
         wken <= wen;
@@ -342,33 +372,34 @@ always @ (posedge clk or negedge rstn)
 
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
-        for(int i=0; i<8; i++) hsave[i] <= '0;
+        for(i=0; i<8; i=i+1) hsave[i] <= 64'd0;
     end else begin
         if(wkstart)
-            for(int i=0; i<8; i++) hsave[i] <= h[i];
+            for(i=0; i<8; i=i+1) hsave[i] <= h[i];
     end
 
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
-        for(int i=0; i<8; i++) hadder[i] <= '0;
+        for(i=0; i<8; i=i+1) hadder[i] <= 64'd0;
     end else begin
         if(wfinal) begin
-            for(int i=0; i<8; i++) hadder[i] <= hsave[i];
+            for(i=0; i<8; i=i+1) hadder[i] <= hsave[i];
         end else begin
-            for(int i=0; i<8; i++) hadder[i] <= '0;
+            for(i=0; i<8; i=i+1) hadder[i] <= 64'd0;
         end
     end
 
+
+wire [63:0] t1 = ( h[7] + BSIG1(h[4]) + ((h[4] &  h[5]) ^ (~h[4] & h[6])) + wk );
+wire [63:0] t2 = ( BSIG0(h[0]) + ((h[0] & h[1]) ^ (h[0] & h[2]) ^ (h[1] & h[2])) );
+
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
-        for(int i=0; i<8; i++) h[i] <= '0;
+        for(i=0; i<8; i=i+1) h[i] <= 64'd0;
     end else begin
         if(wkinit) begin
-            for(int i=0; i<8; i++) h[i] <= hinit[i];
+            for(i=0; i<8; i=i+1) h[i] <= hinit[i];
         end else if(wken) begin
-            logic [63:0] t1, t2;
-            t1 = h[7] + BSIG1(h[4]) + ((h[4] &  h[5]) ^ (~h[4] & h[6])) + wk;
-            t2 = BSIG0(h[0]) + ((h[0] & h[1]) ^ (h[0] & h[2]) ^ (h[1] & h[2]));
             h[7] <= hadder[7] + h[6];
             h[6] <= hadder[6] + h[5];
             h[5] <= hadder[5] + h[4];
@@ -380,17 +411,18 @@ always @ (posedge clk or negedge rstn)
         end
     end
 
-initial {ovalid,oid,olen}  =1'b0;
+initial {ovalid,oid,olen} = 0;
 always @ (posedge clk or negedge rstn)
     if(~rstn) begin
         ovalid <= 1'b0;
-        oid  <= '0;
-        olen <= '0;
+        oid  <= 0;
+        olen <= 61'd0;
     end else begin
         ovalid <= wklast;
         oid  <= wkid;
         olen <= wklen;
     end
-assign osha = {h[0],h[1],h[2],h[3],h[4],h[5],h[6],h[7]};
+
+assign osha = {h[0],h[1],h[2],h[3],h[4],h[5]};
 
 endmodule
